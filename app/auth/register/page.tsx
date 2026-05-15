@@ -1,36 +1,45 @@
-import Link from "next/link";
+"use client";
 
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+
+import AuthForm from "@/components/auth/auth-form";
+import { createClient } from "@/lib/supabase/client";
 
 export default function RegisterPage() {
-  return (
-    <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center px-4">
-      <div className="grid gap-6 rounded-lg border p-6">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Register shop</h1>
-          <p className="text-sm text-muted-foreground">
-            This form will create a Supabase user and shop profile.
-          </p>
-        </div>
-        <div className="grid gap-3">
-          <input className="h-10 rounded-md border px-3 text-sm" placeholder="Shop name" />
-          <input className="h-10 rounded-md border px-3 text-sm" placeholder="Owner name" />
-          <input className="h-10 rounded-md border px-3 text-sm" placeholder="Phone" />
-          <input className="h-10 rounded-md border px-3 text-sm" placeholder="Email" type="email" />
-          <input
-            className="h-10 rounded-md border px-3 text-sm"
-            placeholder="Password"
-            type="password"
-          />
-          <Button>Create account</Button>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Already registered?{" "}
-          <Link href="/auth/login" className="font-medium text-foreground underline">
-            Login
-          </Link>
-        </p>
-      </div>
-    </main>
-  );
+  const router = useRouter();
+
+  async function handleRegister(formData: FormData) {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const shopName = formData.get("shop_name") as string;
+    const ownerName = formData.get("owner_name") as string;
+    const phone = formData.get("phone") as string;
+    const city = formData.get("city") as string;
+
+    const supabase = createClient();
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (signUpError) return { error: signUpError.message };
+    if (!data.user) return { error: "Something went wrong. Please try again." };
+
+    const { error: shopError } = await supabase.from("shops").insert({
+      user_id: data.user.id,
+      shop_name: shopName,
+      owner_name: ownerName,
+      phone,
+      city,
+    });
+
+    if (shopError) return { error: shopError.message };
+
+    router.push("/products");
+    router.refresh();
+    return {};
+  }
+
+  return <AuthForm mode="register" onSubmit={handleRegister} />;
 }
