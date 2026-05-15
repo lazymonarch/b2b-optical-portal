@@ -3,7 +3,7 @@
 import { ShoppingCart } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/hooks/use-cart";
+import { useCart } from "@/hooks/useCart";
 
 export function CartSummary() {
   const { items, clearCart } = useCart();

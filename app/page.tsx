@@ -2,13 +2,11 @@ import Link from "next/link";
 import { ArrowRight, Package, ShieldCheck, Store } from "lucide-react";
 
 import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader />
       <main className="flex-1">
         <section className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 md:grid-cols-[1.1fr_0.9fr] md:items-center md:py-24">
           <div className="space-y-6">
