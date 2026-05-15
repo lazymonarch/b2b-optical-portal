@@ -1,27 +1,38 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
 
-import { CartSummary } from "@/components/cart/cart-summary";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
-import { Button } from "@/components/ui/button";
+import OrderForm from "@/components/orders/OrderForm";
+import { createClient } from "@/lib/supabase/server";
 
-export default function ShopOrderPage() {
+export default async function OrderPage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/auth/login?redirectTo=/shop/order");
+
+  const { data: shop, error } = await supabase
+    .from("shops")
+    .select("id, shop_name, owner_name, phone, address, city")
+    .eq("user_id", user.id)
+    .single();
+
+  if (error || !shop) {
+    redirect("/auth/login");
+  }
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="mx-auto grid w-full max-w-4xl flex-1 gap-6 px-4 py-10">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Shop</p>
-            <h1 className="text-3xl font-semibold tracking-tight">Order request</h1>
-          </div>
-          <Button asChild variant="outline">
-            <Link href="/products">Continue browsing</Link>
-          </Button>
+    <main className="min-h-screen bg-neutral-50">
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <div className="mb-6">
+          <h1 className="text-lg font-medium text-neutral-900">Your order</h1>
+          <p className="text-sm text-neutral-500">
+            Review your items and place your order. No payment required.
+          </p>
         </div>
-        <CartSummary />
-      </main>
-      <SiteFooter />
-    </div>
+        <OrderForm shop={shop} />
+      </div>
+    </main>
   );
 }
