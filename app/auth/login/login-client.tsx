@@ -15,7 +15,7 @@ export default function LoginClient() {
     const password = formData.get("password") as string;
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -24,8 +24,14 @@ export default function LoginClient() {
       return { error: error.message };
     }
 
-    router.push(redirectTo);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const role = user?.user_metadata?.role ?? data.user?.user_metadata?.role;
+    const target = role === "admin" ? "/admin" : redirectTo;
+
     router.refresh();
+    window.location.assign(target);
     return {};
   }
 

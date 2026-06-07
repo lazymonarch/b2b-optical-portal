@@ -1,7 +1,6 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 export interface CartItem {
   productId: string;
@@ -23,57 +22,101 @@ interface CartStore {
   updateNote: (variantId: string, note: string) => void;
   clearCart: () => void;
   totalItems: () => number;
+  hydrateCart: () => void;
 }
 
-export const useCart = create<CartStore>()(
-  persist(
-    (set, get) => ({
-      items: [],
+const cartStorageKey = "lakshan-cart";
 
-      addItem: (newItem) => {
-        const existing = get().items.find((item) => item.variantId === newItem.variantId);
+function getBrowserStorage() {
+  if (typeof window === "undefined") {
+    return null;
+  }
 
-        if (existing) {
-          set((state) => ({
-            items: state.items.map((item) =>
-              item.variantId === newItem.variantId
-                ? { ...item, quantity: item.quantity + 1 }
-                : item,
-            ),
-          }));
-        } else {
-          set((state) => ({ items: [...state.items, newItem] }));
-        }
-      },
+  const storage = window.localStorage;
 
-      removeItem: (variantId) =>
-        set((state) => ({
-          items: state.items.filter((item) => item.variantId !== variantId),
-        })),
+  if (
+    !storage ||
+    typeof storage.getItem !== "function" ||
+    typeof storage.setItem !== "function" ||
+    typeof storage.removeItem !== "function"
+  ) {
+    return null;
+  }
 
-      updateQty: (variantId, quantity) => {
-        if (quantity < 1) return;
+  return storage;
+}
 
-        set((state) => ({
-          items: state.items.map((item) =>
-            item.variantId === variantId ? { ...item, quantity } : item,
-          ),
-        }));
-      },
+function readStoredCart() {
+  const storage = getBrowserStorage();
+  if (!storage) return [];
 
-      updateNote: (variantId, note) =>
-        set((state) => ({
-          items: state.items.map((item) =>
-            item.variantId === variantId ? { ...item, itemNote: note } : item,
-          ),
-        })),
+  try {
+    const value = storage.getItem(cartStorageKey);
+    if (!value) return [];
 
-      clearCart: () => set({ items: [] }),
+    const parsed = JSON.parse(value) as { state?: { items?: CartItem[] } } | CartItem[];
+    return Array.isArray(parsed) ? parsed : (parsed.state?.items ?? []);
+  } catch {
+    return [];
+  }
+}
 
-      totalItems: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
-    }),
-    {
-      name: "lakshan-cart",
-    },
-  ),
-);
+function writeStoredCart(items: CartItem[]) {
+  const storage = getBrowserStorage();
+  if (!storage) return;
+
+  try {
+    storage.setItem(cartStorageKey, JSON.stringify({ state: { items }, version: 0 }));
+  } catch {
+    // Storage can be unavailable in private mode or non-browser runtimes.
+  }
+}
+
+export const useCart = create<CartStore>()((set, get) => ({
+  items: [],
+
+  addItem: (newItem) => {
+    const existing = get().items.find((item) => item.variantId === newItem.variantId);
+    const items = existing
+      ? get().items.map((item) =>
+          item.variantId === newItem.variantId ? { ...item, quantity: item.quantity + 1 } : item,
+        )
+      : [...get().items, newItem];
+
+    set({ items });
+    writeStoredCart(items);
+  },
+
+  removeItem: (variantId) => {
+    const items = get().items.filter((item) => item.variantId !== variantId);
+    set({ items });
+    writeStoredCart(items);
+  },
+
+  updateQty: (variantId, quantity) => {
+    if (quantity < 1) return;
+
+    const items = get().items.map((item) =>
+      item.variantId === variantId ? { ...item, quantity } : item,
+    );
+    set({ items });
+    writeStoredCart(items);
+  },
+
+  updateNote: (variantId, note) => {
+    const items = get().items.map((item) =>
+      item.variantId === variantId ? { ...item, itemNote: note } : item,
+    );
+    set({ items });
+    writeStoredCart(items);
+  },
+
+  clearCart: () => {
+    set({ items: [] });
+    writeStoredCart([]);
+  },
+
+  totalItems: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
+
+  hydrateCart: () => set({ items: readStoredCart() }),
+}));

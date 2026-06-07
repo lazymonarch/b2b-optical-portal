@@ -17,21 +17,24 @@ export default function HeaderAuth({
   isAdmin?: boolean;
 }) {
   const router = useRouter();
-  const { totalItems } = useCart();
+  const { hydrateCart, totalItems } = useCart();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => setMounted(true));
+    const frame = window.requestAnimationFrame(() => {
+      hydrateCart();
+      setMounted(true);
+    });
 
     return () => window.cancelAnimationFrame(frame);
-  }, []);
+  }, [hydrateCart]);
 
-  const itemsCount = totalItems();
+  const itemsCount = mounted ? totalItems() : 0;
 
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/auth/login");
+    router.push("/");
     router.refresh();
   }
 
@@ -73,6 +76,14 @@ export default function HeaderAuth({
             </span>
             <span className="text-xs text-neutral-500">{userEmail}</span>
           </div>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-neutral-700"
+            >
+              Admin Dashboard
+            </Link>
+          )}
           <button
             onClick={handleLogout}
             className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-500 transition-colors hover:bg-neutral-900 hover:text-white"

@@ -36,7 +36,7 @@ export default async function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link
-          href="/products"
+          href="/"
           className="flex items-center gap-2 text-lg font-medium tracking-wide text-neutral-900"
         >
           <div className="flex size-8 items-center justify-center rounded bg-neutral-900">
