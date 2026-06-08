@@ -40,6 +40,15 @@ export default function HeaderAuth({
 
   return (
     <div className="flex items-center gap-6">
+      {!isAdmin && userEmail && (
+        <Link
+          href="/shop/orders"
+          className="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+        >
+          My Orders
+        </Link>
+      )}
+
       {!isAdmin && (
         <Link
           href="/shop/order"

@@ -94,7 +94,10 @@ export const useCart = create<CartStore>()((set, get) => ({
   },
 
   updateQty: (variantId, quantity) => {
-    if (quantity < 1) return;
+    if (quantity < 1) {
+      get().removeItem(variantId);
+      return;
+    }
 
     const items = get().items.map((item) =>
       item.variantId === variantId ? { ...item, quantity } : item,

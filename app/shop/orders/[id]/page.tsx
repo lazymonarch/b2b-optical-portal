@@ -15,7 +15,12 @@ type OrderView = {
   status: string;
   notes: string | null;
   created_at: string;
-  shops: { shop_name: string; phone: string | null; city: string | null } | null;
+  shops: {
+    shop_name: string;
+    phone: string | null;
+    city: string | null;
+    user_id: string;
+  } | null;
   order_items: OrderItemView[];
 };
 
@@ -41,7 +46,7 @@ export default async function OrderConfirmationPage({
       status,
       notes,
       created_at,
-      shops ( shop_name, phone, city ),
+      shops ( shop_name, phone, city, user_id ),
       order_items (
         quantity,
         item_note,
@@ -55,7 +60,7 @@ export default async function OrderConfirmationPage({
 
   const order = data as unknown as OrderView | null;
 
-  if (!order) redirect("/shop/orders");
+  if (!order || order.shops?.user_id !== user.id) redirect("/shop/orders");
 
   const createdAt = new Date(order.created_at).toLocaleString("en-IN", {
     dateStyle: "medium",
@@ -119,14 +124,38 @@ export default async function OrderConfirmationPage({
           )}
         </div>
 
-        <div className="mb-6 rounded-xl border border-amber-100 bg-amber-50 px-5 py-4">
-          <p className="mb-1 text-sm font-medium text-amber-800">Pending confirmation</p>
-          <p className="text-xs leading-relaxed text-amber-700">
-            Your order has been received. You will be contacted directly on{" "}
-            {order.shops?.phone ?? "your registered number"} to confirm availability and delivery
-            details.
-          </p>
-        </div>
+        {order.status === "pending" && (
+          <div className="mb-6 rounded-xl border border-amber-100 bg-amber-50 px-5 py-4">
+            <p className="mb-1 text-sm font-medium text-amber-800">Pending confirmation</p>
+            <p className="text-xs leading-relaxed text-amber-700">
+              Your order has been received. You will be contacted shortly.
+            </p>
+          </div>
+        )}
+        {order.status === "confirmed" && (
+          <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50 px-5 py-4">
+            <p className="mb-1 text-sm font-medium text-blue-800">Order Confirmed</p>
+            <p className="text-xs leading-relaxed text-blue-700">
+              Your order is confirmed and is being prepared for dispatch.
+            </p>
+          </div>
+        )}
+        {order.status === "dispatched" && (
+          <div className="mb-6 rounded-xl border border-purple-100 bg-purple-50 px-5 py-4">
+            <p className="mb-1 text-sm font-medium text-purple-800">Order Dispatched</p>
+            <p className="text-xs leading-relaxed text-purple-700">
+              Your order has left our facility and is on its way to you.
+            </p>
+          </div>
+        )}
+        {order.status === "delivered" && (
+          <div className="mb-6 rounded-xl border border-green-100 bg-green-50 px-5 py-4">
+            <p className="mb-1 text-sm font-medium text-green-800">Delivered</p>
+            <p className="text-xs leading-relaxed text-green-700">
+              This order has been successfully delivered.
+            </p>
+          </div>
+        )}
 
         <div className="flex gap-3">
           <Link

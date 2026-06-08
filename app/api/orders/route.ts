@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { sendOrderNotifications } from "@/lib/notify";
 import { createClient } from "@/lib/supabase/server";
 
 type OrderRequestItem = {
@@ -21,14 +22,10 @@ type OrderRequestBody = {
   items?: OrderRequestItem[];
 };
 
-function getAppUrl(request: NextRequest) {
-  return process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin;
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as OrderRequestBody;
-    const { shopId, shopName, phone, address, notes, itemCount, items } = body;
+    const { shopId, shopName, address, notes, itemCount, items } = body;
 
     if (!shopId || !items || items.length === 0) {
       return NextResponse.json({ error: "Invalid order data." }, { status: 400 });
@@ -87,16 +84,12 @@ export async function POST(request: NextRequest) {
       throw new Error(itemsError.message);
     }
 
-    fetch(`${getAppUrl(request)}/api/notify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId: order.id,
-        shopName,
-        phone,
-        itemCount: itemCount ?? items.reduce((sum, item) => sum + item.quantity, 0),
-        items,
-      }),
+    const packetCount = itemCount ?? items.reduce((sum, item) => sum + item.quantity, 0);
+
+    sendOrderNotifications({
+      shopName: shopName ?? "Unknown shop",
+      orderId: order.id,
+      itemCount: packetCount,
     }).catch(console.error);
 
     return NextResponse.json({ orderId: order.id }, { status: 201 });
