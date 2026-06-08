@@ -49,6 +49,7 @@ export default function OrderForm({ shop }: OrderFormProps) {
           phone: shop.phone,
           address,
           notes: orderNote,
+          itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
           items: items.map((item) => ({
             productId: item.productId,
             variantId: item.variantId,

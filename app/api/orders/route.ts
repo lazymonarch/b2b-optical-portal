@@ -17,6 +17,7 @@ type OrderRequestBody = {
   phone?: string | null;
   address?: string;
   notes?: string;
+  itemCount?: number;
   items?: OrderRequestItem[];
 };
 
@@ -27,7 +28,7 @@ function getAppUrl(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as OrderRequestBody;
-    const { shopId, shopName, phone, address, notes, items } = body;
+    const { shopId, shopName, phone, address, notes, itemCount, items } = body;
 
     if (!shopId || !items || items.length === 0) {
       return NextResponse.json({ error: "Invalid order data." }, { status: 400 });
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
         orderId: order.id,
         shopName,
         phone,
-        itemCount: items.length,
+        itemCount: itemCount ?? items.reduce((sum, item) => sum + item.quantity, 0),
         items,
       }),
     }).catch(console.error);
