@@ -41,16 +41,28 @@ export async function sendOrderNotifications({
     process.env.ADMIN_WHATSAPP
   ) {
     const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    const from = `whatsapp:${process.env.TWILIO_WHATSAPP_FROM}`;
+    const to = `whatsapp:${process.env.ADMIN_WHATSAPP}`;
+    const shortOrderId = orderId.slice(0, 6).toUpperCase();
+    const twilioMessage = process.env.TWILIO_CONTENT_SID
+      ? {
+          contentSid: process.env.TWILIO_CONTENT_SID,
+          contentVariables: JSON.stringify({
+            "1": shopName,
+            "2": `${itemCount} pkts - #${shortOrderId}`,
+          }),
+          from,
+          to,
+        }
+      : {
+          body: `New Order Alert!\nShop: ${shopName}\nItems: ${itemCount} pkts\nID: #${shortOrderId}`,
+          from,
+          to,
+        };
 
     tasks.push(
       twilioClient.messages
-        .create({
-          body: `New Order Alert!\nShop: ${shopName}\nItems: ${itemCount} pkts\nID: #${orderId
-            .slice(0, 6)
-            .toUpperCase()}`,
-          from: `whatsapp:${process.env.TWILIO_WHATSAPP_FROM}`,
-          to: `whatsapp:${process.env.ADMIN_WHATSAPP}`,
-        })
+        .create(twilioMessage)
         .catch(console.error),
     );
   }
