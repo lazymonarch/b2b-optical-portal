@@ -61,7 +61,7 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
               : "Create an account to start ordering from our catalog."}
           </p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form method="post" onSubmit={handleSubmit} className="flex flex-col gap-4">
             {mode === "register" && (
               <>
                 <AuthInput
