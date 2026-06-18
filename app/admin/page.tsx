@@ -54,7 +54,7 @@ export default async function AdminDashboard({
   const confirmedCount = allOrders.filter((order) => order.status === "confirmed").length;
 
   return (
-    <main className="max-w-5xl p-6">
+    <div>
       <div className="mb-6">
         <h1 className="text-2xl font-medium text-neutral-900">Orders Dashboard</h1>
         <p className="text-sm text-neutral-500">
@@ -89,6 +89,6 @@ export default async function AdminDashboard({
       </div>
 
       <AdminOrdersTable orders={allOrders} />
-    </main>
+    </div>
   );
 }
