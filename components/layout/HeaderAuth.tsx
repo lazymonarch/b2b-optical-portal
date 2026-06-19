@@ -41,12 +41,26 @@ export default function HeaderAuth({
   return (
     <div className="flex items-center gap-6">
       {!isAdmin && userEmail && (
-        <Link
-          href="/shop/orders"
-          className="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
-        >
-          My Orders
-        </Link>
+        <nav className="hidden items-center gap-4 sm:flex">
+          <Link
+            href="/products"
+            className="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+          >
+            Catalog
+          </Link>
+          <Link
+            href="/shop/orders"
+            className="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+          >
+            My Orders
+          </Link>
+          <Link
+            href="/shop/profile"
+            className="text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+          >
+            Profile
+          </Link>
+        </nav>
       )}
 
       {!isAdmin && (

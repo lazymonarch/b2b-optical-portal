@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import ReorderButton from "@/components/orders/ReorderButton";
 import { createClient } from "@/lib/supabase/server";
 
 type OrderItemView = {
@@ -170,6 +171,10 @@ export default async function OrderConfirmationPage({
           >
             View all orders
           </Link>
+        </div>
+
+        <div className="mt-3 flex">
+          <ReorderButton orderId={order.id} />
         </div>
       </div>
     </main>
